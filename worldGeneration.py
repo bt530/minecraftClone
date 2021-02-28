@@ -5,6 +5,7 @@ from perlin_noise import PerlinNoise
 from chunks import voxelChunk
 import copy
 import random
+import time as t
 
 class chunkGenerator():
     def __init__(self,
@@ -101,13 +102,14 @@ class chunkGenerator():
             surface +=  (self.noise[l]([x*self.square[l],z*self.square[l]]))*self.terrainScale[l]+self.terrainOffset[l]
         surface=round(surface)
         if surface >position[1]+size:
-            chunkArray=copy.deepcopy(self.templateAir)
-            air=True
-            #print("air")
-        else:
             chunkArray=copy.deepcopy(self.templateStone)
             air=False
             stonePresent=True
+            #print("air")
+        else:
+            chunkArray=copy.deepcopy(self.templateAir)
+            air=True
+            
             #print("stone")
         
         #print(chunkArray)
@@ -128,7 +130,11 @@ class chunkGenerator():
                 #surface=round(surface*self.terrainScale+self.terrainOffset)
                 if air:
                     for j in range(size):
+                        
                         y=position[1]+j
+                        if y==0:
+                            chunkArray[i][j][k]="b"
+                            #print("bed")
                         if y < surface-3:
                             chunkArray[i][j][k]="s"
                             stonePresent=True
@@ -136,28 +142,35 @@ class chunkGenerator():
                             chunkArray[i][j][k]="d"
                         elif y== surface:
                             chunkArray[i][j][k]="g"
-                        elif y==0:
-                            chunkArray[i][j][k]="b"
+
                         else:
                             break
                 else:
-                    for l in range(size):
-                        j=size-l-1
+                    for m in range(size):
+
+                        j=size-m-1
                         y=position[1]+j
+
+
                         if y > surface:
                             chunkArray[i][j][k]="a"
                         elif y >= surface-3 and y<surface:
                             chunkArray[i][j][k]="d"
                         elif y== surface:
                             chunkArray[i][j][k]="g"
-                        elif y==0:
-                            chunkArray[i][j][k]="b"
+
                         else:
                             
                             break
+                    if position[1]==0:
+                        chunkArray[i][0][k]="b"
+                        
             if stonePresent:
+                s=self.seed+position[0]+position[1]+position[2]
                 for i in list(self.oreRules[round(position[1]/size)].keys()):
                     for j in range(self.oreRules[round(position[1]/size)][i]):
+                        s+=10
+                        random.seed(s)
                         x=random.randint(0,size-1)
                         y=random.randint(0,size-1)
                         z=random.randint(0,size-1)
@@ -198,13 +211,13 @@ if __name__ == "__main__":
     app=Ursina()
     Texture.default_filtering = None
     Sky()
-    generator=chunkGenerator()
+    generator=chunkGenerator(seed=round(t.time()))
     count=0
     for i in range(8):
         for j in range(4):
             for k in range(8):
                 count+=1
-                print("\n"*100+"|"+"count)
+                print("\n"*60+"▓"*round(count/2)+"░"*round((256-count)/2))
                 x,y,z=i*16,j*16,k*16
                 chunk=generator.generateChunkArrayNew(position=Vec3(x,y,z))
                 chunk=voxelChunk(position=Vec3(x,y,z),chunkArray=chunk)
