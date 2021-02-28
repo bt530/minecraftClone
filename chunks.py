@@ -5,7 +5,7 @@ class voxelChunk(Entity):
     def __init__(self,chunkArray,position=Vec3(0,0,0),shader=lit_with_shadows_shader,origin=Vec3(0,0,0)):
         super().__init__(double_sided=False,texture="testStrip",shader=shader,position=position,origin=origin)
         self.texture.filtering='none'
-        self.textureCount=13
+        self.textureCount=16
         self.textureWidth=self.texture.width/self.textureCount
         #print(self.textureWidth)
         self.chunkArray=chunkArray
@@ -17,9 +17,9 @@ class voxelChunk(Entity):
         self.transparent=["a"]
         #self.blockUVs={"s":[0,(0,0),(0,1),(1,1),(0,1),(0,1),(1,1),(0,0),(1,0),(0,1),(0,0),(1,0),(0,0),(1,0),(1,1),(0,1),(1,1),(1,1),(0,1),(1,0),(0,0),(1,1),(1,0),(0,0),(1,0)]}
         defaultLayouts={
-        "allSides":[[0,0],[0,1],[1,1],[0,1],[0,1],[1,1],[0,0],[1,0],[0,1],[0,0],[1,0],[0,0],[1,0],[1,1],[0,1],[1,1],[1,1],[0,1],[1,0],[0,0],[1,1],[1,0],[0,0],[1,0]],
-        "topSidesBottom":[[2,0],[0,1],[1,1],[2,1],[0,1],[1,1],[0,0],[1,0],[1,1],[0,0],[1,0],[1,0],[3,0],[1,1],[0,1],[3,1],[1,1],[0,1],[1,0],[0,0],[2,1],[1,0],[0,0],[2,0]],
-        "topSidesBottomSame":[[1,0],[0,1],[1,1],[1,1],[0,1],[1,1],[0,0],[1,0],[1,1],[0,0],[1,0],[1,0],[2,0],[1,1],[0,1],[2,1],[1,1],[0,1],[1,0],[0,0],[2,1],[1,0],[0,0],[2,0]]
+        "allSides":[[0,1],[0,0],[1,0],[0,0],[0,0],[1,0],[0,1],[1,1],[0,0],[0,1],[1,1],[0,1],[1,1],[1,0],[0,0],[1,0],[1,0],[0,0],[1,1],[0,1],[1,0],[1,1],[0,1],[1,1]],
+        "topSidesBottom":[[2,1],[0,0],[1,0],[2,0],[0,0],[1,0],[0,1],[1,1],[1,0],[0,1],[1,1],[1,1],[3,1],[1,0],[0,0],[3,0],[1,0],[0,0],[1,1],[0,1],[2,0],[1,1],[0,1],[2,1]],
+        "topSidesBottomSame":[[1,1],[0,0],[1,0],[1,0],[0,0],[1,0],[0,1],[1,1],[1,0],[0,1],[1,1],[1,1],[2,1],[1,0],[0,0],[2,0],[1,0],[0,0],[1,1],[0,1],[2,0],[1,1],[0,1],[2,1]]
         #                     <      fbl     > <      bbl    >    <      ftl     > <        btl     > <       fbr     ><       bbr      ><        ftr     ><       btr     >
 
 
@@ -35,7 +35,8 @@ class voxelChunk(Entity):
                        "coal":[11,"allSides"],
                        "diamond":[10,"allSides"],
                        "gold":[9,"allSides"],
-                       "iron":[8,"allSides"]
+                       "iron":[8,"allSides"],
+                       "snow":[13,"topSidesBottom"],
         }
         #                   <      fbl     > <      bbl    >    <      ftl     > <        btl     > <       fbr     ><       bbr      ><        ftr     ><       btr     >
 

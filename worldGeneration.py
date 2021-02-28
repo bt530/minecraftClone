@@ -12,6 +12,7 @@ class chunkGenerator():
                  octaveDepth=2,
                  square=[0.005,0.007],
                  seed=2,
+                 snowHeight=48,
                  terrainScale=[50,10],
                  terrainOffset=[16,16],
                  chunkSize=16,
@@ -27,7 +28,7 @@ class chunkGenerator():
 
 
         
-        
+        self.snowHeight=snowHeight
         self.oreRules=oreRules
         self.octaveDepth=octaveDepth
         self.square=square
@@ -132,19 +133,23 @@ class chunkGenerator():
                     for j in range(size):
                         
                         y=position[1]+j
-                        if y==0:
-                            chunkArray[i][j][k]="b"
-                            #print("bed")
+
                         if y < surface-3:
                             chunkArray[i][j][k]="s"
                             stonePresent=True
                         elif y >= surface-3 and y<surface:
                             chunkArray[i][j][k]="d"
                         elif y== surface:
-                            chunkArray[i][j][k]="g"
+                            if y > self.snowHeight and random.randint(0,y-self.snowHeight)!=0:
+                                chunkArray[i][j][k]="snow"
+
+                            else:
+                                chunkArray[i][j][k]="g"
 
                         else:
                             break
+                    if position[1]==0:
+                        chunkArray[i][0][k]="b"
                 else:
                     for m in range(size):
 
@@ -157,7 +162,11 @@ class chunkGenerator():
                         elif y >= surface-3 and y<surface:
                             chunkArray[i][j][k]="d"
                         elif y== surface:
-                            chunkArray[i][j][k]="g"
+                            if y > self.snowHeight and random.randint(0,y-self.snowHeight)!=0:
+                                chunkArray[i][j][k]="snow"
+
+                            else:
+                                chunkArray[i][j][k]="g"
 
                         else:
                             
