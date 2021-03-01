@@ -1,4 +1,4 @@
-#https://pypi.org/project/perlin-noise/#history
+#https://pypi.org/project/perlin-noise/
 from ursina import *
 import matplotlib.pyplot as plt
 from perlin_noise import PerlinNoise
@@ -23,11 +23,24 @@ class chunkGenerator():
 
 
 
-                           }
+                           },
+                 spawnRules={0:{"tree":1},
+                           1:{"tree":10},
+                           2:{"tree":10},
+                           3:{"tree":5},
+
+
+
+                           },
+                 treeTemplate=[["l",[[[-1,3,-1],[1,5,1]]]],
+                               ["log",[[[0,1,0],[0,4,0]]]],
+                               ["a",[[[-1,5,-1],[-1,5,-1]],[[1,5,-1],[1,5,-1]],[[1,5,1],[1,5,1]],[[-1,5,1],[-1,5,1]]]]
+
+                               ]
                  ):
 
-
-        
+        self.spawnRules=spawnRules
+        self.treeTemplate=treeTemplate
         self.snowHeight=snowHeight
         self.oreRules=oreRules
         self.octaveDepth=octaveDepth
@@ -99,6 +112,7 @@ class chunkGenerator():
         z=position[2]
         surface=0
         stonePresent=False
+        grassPresent=False
         for l in range(len(self.noise)):
             surface +=  (self.noise[l]([x*self.square[l],z*self.square[l]]))*self.terrainScale[l]+self.terrainOffset[l]
         surface=round(surface)
@@ -145,11 +159,15 @@ class chunkGenerator():
 
                             else:
                                 chunkArray[i][j][k]="g"
+                                grassPresent=True
 
                         else:
                             break
                     if position[1]==0:
                         chunkArray[i][0][k]="b"
+
+                    if position[1]==3 and chunkArray[i][size-1][k] != "a":
+                        chunkArray[i][0][k]="snow"
                 else:
                     for m in range(size):
 
@@ -167,12 +185,15 @@ class chunkGenerator():
 
                             else:
                                 chunkArray[i][j][k]="g"
+                                grassPresent=True
 
                         else:
                             
                             break
                     if position[1]==0:
                         chunkArray[i][0][k]="b"
+                    if position[1]==3 and chunkArray[i][size-1][k] != "a":
+                        chunkArray[i][0][k]="snow"
                         
             if stonePresent:
                 s=self.seed+position[0]+position[1]+position[2]
@@ -185,8 +206,32 @@ class chunkGenerator():
                         z=random.randint(0,size-1)
                         if chunkArray[x][y][z]=="s":
                             chunkArray[x][y][z]=i
+            if grassPresent:
+                s=self.seed+position[0]+position[1]+position[2]
+                #print(self.oreRules[round(position[1]/size)])
+                for j in range(self.spawnRules[round(position[1]/size)]["tree"]):
+                    s+=10
+                    random.seed(s)
+                    x=random.randint(2,size-3)
+                    y=random.randint(0,size-7)
+                    z=random.randint(2,size-3)
+                    if chunkArray[x][y][z]=="g":
+                        for i in self.treeTemplate:
+                            for k in i[1]:
+                                for a in range(k[0][0]+x,k[1][0]+1+x):
+                                    for b in range(k[0][1]+y,k[1][1]+1+y):
+                                        for c in range(k[0][2]+z,k[1][2]+1+z):
+                                            #print(a,b,c)
+                                            try:
+                                                if chunkArray[a][b][c]=="a" or chunkArray[a][b][c]=="l":
+                                                    
+                                                    chunkArray[a][b][c]=i[0]
+                                            except:
+                                                print(a,b,c)
+                                                print(0/0)
+                                                #print( chunkArray[a][b][c])
         
-
+        
 
 
                         #line.append("a")
@@ -218,6 +263,7 @@ class chunkGenerator():
 
 if __name__ == "__main__":
     app=Ursina()
+    window.fullscreen=True
     Texture.default_filtering = None
     Sky()
     generator=chunkGenerator(seed=round(t.time()))
@@ -226,7 +272,7 @@ if __name__ == "__main__":
         for j in range(4):
             for k in range(8):
                 count+=1
-                print("\n"*60+"▓"*round(count/2)+"░"*round((256-count)/2))
+                print("\n"*10+"▓"*round(count/2)+"░"*round((256-count)/2))
                 x,y,z=i*16,j*16,k*16
                 chunk=generator.generateChunkArrayNew(position=Vec3(x,y,z))
                 chunk=voxelChunk(position=Vec3(x,y,z),chunkArray=chunk)
