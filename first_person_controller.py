@@ -95,6 +95,7 @@ class FirstPersonController(Entity):
 def fs():
     window.fullscreen=True
     window.position=(0,0)
+    player.y=60
 
 if __name__ == '__main__':
 
@@ -103,11 +104,12 @@ if __name__ == '__main__':
     from worldGeneration import chunkGenerator
     from chunks import voxelChunk
     import random
+    import time as t
     app=Ursina()
     window.fullscreen=True
     Texture.default_filtering = None
     Sky()
-    generator=chunkGenerator(seed=21)
+    generator=chunkGenerator(seed=round(t.time()))
     count=0
     chunksDict={}
     caster=voxelcaster(chunks=chunksDict)
