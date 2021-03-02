@@ -1,12 +1,13 @@
 from ursina import *
 from ursina.shaders import lit_with_shadows_shader
 import random
+from blockModel import blockModelData
 class voxelChunk(Entity):
-    def __init__(self,chunkArray,position=Vec3(0,0,0),shader=lit_with_shadows_shader,origin=Vec3(0,0,0)):
+    def __init__(self,chunkArray,blockModel=None,position=Vec3(0,0,0),shader=lit_with_shadows_shader,origin=Vec3(0,0,0),):
         super().__init__(double_sided=False,texture="testStrip",shader=shader,position=position,origin=origin)
-        self.texture.filtering='none'
-        self.textureCount=16
-        self.textureWidth=self.texture.width/self.textureCount
+        self.texture.filtering=None
+        if blockModel==None:
+            blockModel=blockModelData()
         #print(self.textureWidth)
         self.chunkArray=chunkArray
         self.building=False
@@ -16,40 +17,18 @@ class voxelChunk(Entity):
         a=0
         self.transparent=["a"]
         #self.blockUVs={"s":[0,(0,0),(0,1),(1,1),(0,1),(0,1),(1,1),(0,0),(1,0),(0,1),(0,0),(1,0),(0,0),(1,0),(1,1),(0,1),(1,1),(1,1),(0,1),(1,0),(0,0),(1,1),(1,0),(0,0),(1,0)]}
-        defaultLayouts={
-        "allSides":[[0,1],[0,0],[1,0],[0,0],[0,0],[1,0],[0,1],[1,1],[0,0],[0,1],[1,1],[0,1],[1,1],[1,0],[0,0],[1,0],[1,0],[0,0],[1,1],[0,1],[1,0],[1,1],[0,1],[1,1]],
-        "topSidesBottom":[[2,1],[0,0],[1,0],[2,0],[0,0],[1,0],[0,1],[1,1],[1,0],[0,1],[1,1],[1,1],[3,1],[1,0],[0,0],[3,0],[1,0],[0,0],[1,1],[0,1],[2,0],[1,1],[0,1],[2,1]],
-        "topSidesBottomSame":[[1,1],[0,0],[1,0],[1,0],[0,0],[1,0],[0,1],[1,1],[1,0],[0,1],[1,1],[1,1],[2,1],[1,0],[0,0],[2,0],[1,0],[0,0],[1,1],[0,1],[2,0],[1,1],[0,1],[2,1]]
+
         #                     <      fbl     > <      bbl    >    <      ftl     > <        btl     > <       fbr     ><       bbr      ><        ftr     ><       btr     >
 
 
 
-        }
-        self.blockUVs={"s":[0,"allSides"],
-                       "g":[1,"topSidesBottom"],
-                       "d":[3,"allSides"],
-                       "log":[4,"topSidesBottomSame"],
-                       "p":[7,"allSides"],
-                       "l":[6,"allSides"],
-                       "b":[12,"allSides"],
-                       "coal":[11,"allSides"],
-                       "diamond":[10,"allSides"],
-                       "gold":[9,"allSides"],
-                       "iron":[8,"allSides"],
-                       "snow":[13,"topSidesBottom"],
-        }
+        
+        self.blockUVs=blockModel.blockUVs
         #                   <      fbl     > <      bbl    >    <      ftl     > <        btl     > <       fbr     ><       bbr      ><        ftr     ><       btr     >
 
 
+        
 
-        for i in list(self.blockUVs.keys()):
-            offset=self.blockUVs[i][0]/self.textureCount
-            key=self.blockUVs[i][1]
-            self.blockUVs[i]=[]
-            #print(self.blockUVs)
-            for j in range(len(defaultLayouts[key])):
-                self.blockUVs[i].append([0,defaultLayouts[key][j][1]])
-                self.blockUVs[i][j][0]=defaultLayouts[key][j][0]/self.textureCount+offset
             #print(self.blockUVs[i])
         self.vertsChanged=True
         self.normalsChanged=True
@@ -107,8 +86,9 @@ class voxelChunk(Entity):
         
 
     def generateMesh(self):
+        
         if self.vertsChanged:
-            print("verts")
+            #print("verts")
             self.model.vertices=self.verts#.copy()
             self.vertsChanged=False
         if self.normalsChanged:
@@ -190,6 +170,8 @@ class voxelChunk(Entity):
         depth=len(self.chunkArray[0][0])
         show=False
         normals=self.faceNormals
+        #print("removing block")
+        #print(i,j,k)
 
 
         
@@ -201,15 +183,21 @@ class voxelChunk(Entity):
 
 
 
-
+        #print(chunkKey)
+        #print(list(self.chunkDict.keys()))
         if self.chunkArray[i][j][k] == "a" and chunkKey in list(self.chunkDict.keys()):
+            #print("removing")
             fStart=self.chunkDict[chunkKey][1]
+            #print(fStart)
             template=self.template
-
+            #print(self.faces)
             for l in range(6):
+                if fStart + l ==0:
+                    self.faces[fStart+l]=[0,0,0]
+                else:
                     self.faces[fStart+l]=[]
-
-
+            
+           #print(self.faces)
 
         
         for l in range(6):
@@ -217,7 +205,7 @@ class voxelChunk(Entity):
             if i+normals[l][0] >=width or i+normals[l][0] < 0 or j+normals[l][1] >=height or j+normals[l][1] < 0 or k+normals[l][2] >=depth or k+normals[l][2] < 0 or self.chunkArray[i+normals[l][0]][j+normals[l][1]][k+normals[l][2]] =="a":                                                                #doesn't display hidden faces
                 pass
             else:
-                self.addBlock(position=(i+normals[l][0],j+normals[l][1],k+normals[l][2]),block=chunkArray[i+normals[l][0]][j+normals[l][1]][k+normals[l][2]],generate=False)
+                self.addBlock(position=(i+normals[l][0],j+normals[l][1],k+normals[l][2]),block=self.chunkArray[i+normals[l][0]][j+normals[l][1]][k+normals[l][2]],generate=False)
         if generate:
             self.generateMesh()
     
@@ -345,14 +333,30 @@ class voxelChunk(Entity):
 
 
         
+if __name__=="__main__":
+    global rmX
+    global rmY
+    global rmZ
 
-
+    rmX=0
+    rmY=0
+    rmZ=0
 
 def addRandom():
     #return
     #chunk.model.generate()
-    chunk.addBlock((random.randint(0,15),random.randint(0,15),random.randint(0,15)),block="l")
-    invoke(addRandom,delay=0.5)
+    global rmX
+    global rmY
+    global rmZ
+    chunk.removeBlock((rmX,rmY,rmZ))#,block="l")
+    rmX+=1
+    if rmX==16:
+        rmY+=1
+        rmX=0
+    if rmY==16:
+        rmY=0
+        rmZ+=1
+    invoke(addRandom,delay=0.2)
     
 if __name__=="__main__":
     app=Ursina()
@@ -421,7 +425,7 @@ if __name__=="__main__":
     
     #test=Entity(model="cube")
 
-    #addRandom()
+    invoke(addRandom,delay=1)
     chunk.addBlock((5,11,5),block="log")
     chunk.addBlock((5,12,5),block="log")
     chunk.addBlock((5,13,5),block="log")

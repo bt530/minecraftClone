@@ -4,6 +4,7 @@ from numpy import dot,cross
 from hit_info import HitInfo
 
 
+#fix bug where ray starts right from face boundary
 
 class voxelcaster():
     def __init__(self,chunks,size=16):
@@ -12,20 +13,22 @@ class voxelcaster():
         self.cubeTemplate=[[[0,0,0],[0,0,1],[1,0,0]],[[0,0,0],[1,0,0],[1,1,0]],[[0,0,0],[0,0,1],[0,1,1]],[[1,0,0],[1,0,1],[1,1,1]],[[0,0,1],[0,1,1],[1,1,1]],[[0,1,0],[1,1,0],[1,1,1]]]
         self.faceNormals=[[0,-1,0],[0,0,-1],[-1,0,0],[1,0,0],[0,0,1],[0,1,0]]
 
-    def voxelcast(self,origin,direction,maxDistance=inf):
+    def voxelcast(self,origin,direction,maxDistance=inf,debug=False):
 
         origin=Vec3(*origin)
         direction=Vec3(*direction)
         #position=Vec3(*origin)
         point=origin
         normal=Vec3(0,1,0)
-        oldPoint=None
+        oldNormal=None
         currentDistance=0
         currentWorldCube=Vec3(origin[0]//1,origin[1]//1,origin[2]//1)
+        #print(direction)
         while currentDistance < maxDistance:
             
             
             cubeType,currentChunk,currentCube=self.getCube(currentWorldCube)
+            #print(cubeType)
             if cubeType != "a" and cubeType != None:
                 return self.createHitInfo(hit=True,point=point,normal=-normal,currentChunk=currentChunk,currentCube=currentCube,cubeType=cubeType,distance=currentDistance)###
                 
@@ -37,23 +40,30 @@ class voxelcaster():
                     divider=dot(direction,self.faceNormals[i])
                     if divider != 0:
                         scalar=(dot(start,self.faceNormals[i])-dot(origin,self.faceNormals[i]))/divider
-                        ##print(scalar)
+                        #print(scalar)
                         if scalar != nan and scalar != inf and scalar >=0:
 
-                            point=origin+scalar*direction
+                            point=Vec3(origin+scalar*direction)
+                            if debug:
+                                e=Entity(model="cube", scale=0.1,position=point)
+                                destroy(e,delay=1)
+                                e.fade_out(duration=1)
 
                             relPoint=point-currentWorldCube
+                            #print(relPoint)
                             ##print(oldPoint,point)
                             ######switch to basing it off face rather than old point/new point to reduce issues with floating point arithmetic
-                            if relPoint[0] >=-1 and relPoint[0] <=1 and relPoint[1] >=-1 and relPoint[1] <=1 and relPoint[2] >=-1 and relPoint[2] <=1 and oldPoint != point and scalar >=0:
+                            if relPoint[0] >=0 and relPoint[0] <=1 and relPoint[1] >=0 and relPoint[1] <=1 and relPoint[2] >=0 and relPoint[2] <=1 and oldNormal != -normal and scalar >=0:
                                 ##print(oldPoint,point)
-                                oldPoint=point
+                                oldNormal=normal
                                 currentWorldCube=currentWorldCube+normal
                                 currentDistance=distance(origin,point)
                                 ##print(currentDistance)
                                 error=False
                                 break
                 if error:
+                    print("breaking")
+                    #print(0/0)
                     break
                 
         return self.createHitInfo()###
@@ -78,15 +88,15 @@ class voxelcaster():
         
 
     def getCube(self,position):    
-        currentChunk=[0,0,0]
-        currentCube=[0,0,0]
+        currentChunk=Vec3(0,0,0)
+        currentCube=Vec3(0,0,0)
         for i in range(3):
             currentChunk[i]=round(position[i]//self.size * self.size)
             currentCube[i]=round(position[i] % self.size)
         try:
             chunkArray=self.getChunkArray(currentChunk)
         
-            return chunkArray[currentCube[0]][currentCube[1]][currentCube[2]],currentChunk,currentCube
+            return chunkArray[round(currentCube[0])][round(currentCube[1])][round(currentCube[2])],currentChunk,currentCube
         except Exception as e: ##
             #print(e)
             return "b",None,None
@@ -96,7 +106,7 @@ class voxelcaster():
 
 
     def getChunkArray(self,chunk):##
-        return self.chunks[str(chunk[0])+":"+str(chunk[1])+":"+str(chunk[2])].chunkArray
+        return self.chunks[str(round(chunk[0]))+":"+str(round(chunk[1]))+":"+str(round(chunk[2]))].chunkArray
 
 if __name__ == "__main__":
     from worldGeneration import chunkGenerator

@@ -128,8 +128,10 @@ class chunkGenerator():
             #print("stone")
         
         #print(chunkArray)
+        s=self.seed+position[0]+position[1]+position[2]
         for i in range(size):
             for k in range(size):
+                
                 x=position[0]+i
                 
                 z=position[2]+k
@@ -155,6 +157,8 @@ class chunkGenerator():
                             chunkArray[i][j][k]="d"
                         elif y== surface:
                             if y > self.snowHeight and random.randint(0,y-self.snowHeight)!=0:
+                                s+=10
+                                random.seed(s)
                                 chunkArray[i][j][k]="snow"
 
                             else:
@@ -181,6 +185,8 @@ class chunkGenerator():
                             chunkArray[i][j][k]="d"
                         elif y== surface:
                             if y > self.snowHeight and random.randint(0,y-self.snowHeight)!=0:
+                                s+=10
+                                random.seed(s)
                                 chunkArray[i][j][k]="snow"
 
                             else:
